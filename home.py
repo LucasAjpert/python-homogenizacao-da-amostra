@@ -14,6 +14,11 @@ janela.geometry("300x350")
 fonte_padrao = ("Arial", 10)
 fonte_botoes = ("Arial", 10, "bold")
 
+# --- Função para o atalho F5 ---
+def atalho_f5(event):
+    """Chama a função de atualizar do modelo."""
+    model.atualizar()
+
 # --- Frame para os Radio Buttons ---
 frame_opcoes = Frame(janela, bg="lightblue")
 frame_opcoes.pack(pady=10, padx=20, fill='x')
@@ -62,11 +67,11 @@ estilo_botao = {
 }
 
 # --- Criação dos 5 Botões (estilo padrão) ---
-btn_novo = Button(frame_botoes, text="Novo Calculo", command=model.novo_calculo, **estilo_botao)
+btn_novo = Button(frame_botoes, text="Novo Calculo", command=lambda: model.novo_calculo(tipo_avaliacao.get()), **estilo_botao)
 btn_novo.pack(pady=4)
 
-btn_visualizar = Button(frame_botoes, text="Visualizar", command=model.visualizar, **estilo_botao)
-btn_visualizar.pack(pady=4)
+btn_tabelas = Button(frame_botoes, text="Tabelas", command=model.tabelas, **estilo_botao)
+btn_tabelas.pack(pady=4)
 
 btn_atualizar = Button(frame_botoes, text="Atualizar", command=model.atualizar, **estilo_botao)
 btn_atualizar.pack(pady=4)
@@ -76,6 +81,9 @@ btn_delete.pack(pady=4)
 
 btn_sair = Button(frame_botoes, text="Sair", command=lambda: model.sair(janela), **estilo_botao)
 btn_sair.pack(pady=4)
+
+# --- Associa a tecla F5 à função de atualizar ---
+janela.bind('<F5>', atalho_f5)
 
 # --- Inicia o loop da aplicação ---
 janela.mainloop()
