@@ -7,7 +7,7 @@ import model
 # --- Configuração da Janela Principal ---
 janela = Tk()
 janela.title('Homogenização da Amostra')
-janela.configure(bg="#F9FAFB")
+janela.configure(bg="lightblue")
 janela.geometry("300x350")
 
 # --- DEFINIÇÃO DAS FONTES ---
@@ -15,7 +15,7 @@ fonte_padrao = ("Arial", 10)
 fonte_botoes = ("Arial", 10, "bold")
 
 # --- Frame para os Radio Buttons ---
-frame_opcoes = Frame(janela, bg="#F9FAFB")
+frame_opcoes = Frame(janela, bg="lightblue")
 frame_opcoes.pack(pady=10, padx=20, fill='x')
 
 tipo_avaliacao = StringVar(value="urbano")
@@ -23,32 +23,32 @@ tipo_avaliacao = StringVar(value="urbano")
 # 1. O Label fica no topo do frame principal de opções
 label_tipo = Label(
     frame_opcoes, text="Informe o tipo de avaliação:",
-    bg="#F9FAFB", font=fonte_padrao
+    bg="lightblue", font=fonte_padrao
 )
 label_tipo.pack(anchor='w') # Alinhado à esquerda
 
 # 2. Criamos um novo frame SÓ para os radio buttons
-frame_radios = Frame(frame_opcoes, bg="#F9FAFB")
+frame_radios = Frame(frame_opcoes, bg="lightblue")
 frame_radios.pack(anchor='w') # Este frame fica abaixo do label
 
 # 3. Colocamos os radio buttons dentro do novo frame, um ao lado do outro
 radio_urbano = Radiobutton(
     frame_radios, # <-- Note que o pai agora é 'frame_radios'
     text="Urbano", variable=tipo_avaliacao,
-    value="urbano", bg="#F9FAFB", font=fonte_padrao
+    value="urbano", bg="lightblue", font=fonte_padrao
 )
 radio_urbano.pack(side=LEFT) # Empacotado à esquerda
 
 radio_rurais = Radiobutton(
     frame_radios, # <-- O pai também é 'frame_radios'
     text="Imóveis Rurais", variable=tipo_avaliacao,
-    value="rural", bg="#F9FAFB", font=fonte_padrao
+    value="rural", bg="lightblue", font=fonte_padrao
 )
 radio_rurais.pack(side=LEFT) # Empacotado à esquerda, ao lado do anterior
 
 
 # --- Frame para os Botões Principais ---
-frame_botoes = Frame(janela, bg="#F9FAFB")
+frame_botoes = Frame(janela, bg="lightblue")
 frame_botoes.pack(pady=10, padx=20, fill='x')
 
 # --- Estilo para os botões padrão ---
