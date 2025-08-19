@@ -10,22 +10,22 @@ class UrbanoController:
     def salvar_dados(self, dados):
         """Recebe os dados da view e processa."""
         
-        # Pega apenas os dados que a Treeview espera
-        dados_para_treeview = {
-            "endereco": dados.get("endereco", ""),
-            "area": dados.get("area_construida", ""),
-            "idade": dados.get("idade_imovel", ""),
-            "valor_unitario": dados.get("valor_unitario", "")
-        }
-        
-        self.model.add_imovel(dados) # Salva todos os dados no modelo
+        self.model.add_imovel(dados)
         print("Dados salvos no modelo:", dados)
+
+        # A ordem das chaves aqui DEVE ser a mesma das colunas na View
+        colunas_ids = [
+            "endereco", "area_construida", "idade_imovel", "valor_total",
+            "valor_unitario", "padrao_construtivo", "valor_residual",
+            "conservacao_foc", "indice_fiscal", "frentes_multiplas",
+            "idade_referencial", "estado_conservacao", "fator_oferta",
+            "padao_const", "conservacao", "localizacao", "frentes_m",
+            "unitario_homog"
+        ]
+
+        # Pega os valores na ordem correta, usando .get(chave, "") para evitar erros
+        valores_para_treeview = tuple(dados.get(cid, "") for cid in colunas_ids)
 
         # Pede para a view (através do app_controller) para atualizar a tabela
         main_menu_frame = self.app_controller.view.get_frame("MainMenu")
-        main_menu_frame.tree.insert("", "end", values=(
-            dados_para_treeview["endereco"],
-            dados_para_treeview["area"],
-            dados_para_treeview["idade"],
-            dados_para_treeview["valor_unitario"]
-        ))
+        main_menu_frame.tree.insert("", "end", values=valores_para_treeview)
