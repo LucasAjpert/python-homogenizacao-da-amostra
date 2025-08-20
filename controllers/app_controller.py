@@ -31,8 +31,25 @@ class AppController:
         elif tipo == "rural":
             self.rural.mostrar_tabelas_rurais()
 
-    def atualizar_dados(self, event=None):
-        print("Botão 'Atualizar' ou F5 pressionado")
+    def iniciar_atualizacao(self):
+        """Pega o item selecionado e inicia o processo de atualização."""
+        main_menu = self.view.get_frame("MainMenu")
+        
+        # Pega o ID do item selecionado na treeview
+        item_selecionado = main_menu.tree.focus()
+        
+        if not item_selecionado:
+            self.view.show_error("Erro de Seleção", "Por favor, selecione um item na tabela para atualizar.")
+            return
+
+        # Pega os valores do item selecionado
+        dados_item_tupla = main_menu.tree.item(item_selecionado, 'values')
+        
+        tipo = self.view.get_tipo_avaliacao()
+        if tipo == "urbano":
+            self.urbano.abrir_janela_atualizacao(item_selecionado, dados_item_tupla)
+        elif tipo == "rural":
+            pass # Lógica futura
 
     def deletar_dados(self):
         print("Botão 'Delete' clicado")

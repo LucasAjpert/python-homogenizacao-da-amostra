@@ -291,11 +291,11 @@ class MainMenu(Frame):
         estilo_botao = {"bg": "#007BFF", "fg": "white", "font": ("Arial", 10, "bold"), "relief": "raised", "borderwidth": 2, "width": 15}
         Button(frame_botoes, text="Novo Calculo", command=self.controller.iniciar_novo_calculo, **estilo_botao).pack(pady=4)
         Button(frame_botoes, text="Tabelas", command=self.controller.mostrar_tabelas, **estilo_botao).pack(pady=4)
-        Button(frame_botoes, text="Atualizar", command=self.controller.atualizar_dados, **estilo_botao).pack(pady=4)
+        Button(frame_botoes, text="Atualizar", command=self.controller.iniciar_atualizacao, **estilo_botao).pack(pady=4)
         Button(frame_botoes, text="Delete", command=self.controller.deletar_dados, **estilo_botao).pack(pady=4)
         Button(frame_botoes, text="Sair", command=self.controller.sair, **estilo_botao).pack(pady=4)
         
-        # --- ALTERAÇÕES NA TREEVIEW ---
+# --- ALTERAÇÕES NA TREEVIEW ---
         frame_treeview = Frame(self, bg="lightblue")
         frame_treeview.pack(pady=10, padx=10, fill='both', expand=True)
         
@@ -318,7 +318,7 @@ class MainMenu(Frame):
 
         for cid, cheading in colunas_info:
             self.tree.heading(cid, text=cheading)
-            self.tree.column(cid, width=120, anchor='center') # Largura padrão
+            self.tree.column(cid, width=120, anchor='center') # Largura padrão para cada coluna
         
         # Scrollbar Vertical
         scrollbar_y = ttk.Scrollbar(frame_treeview, orient=VERTICAL, command=self.tree.yview)
@@ -328,7 +328,7 @@ class MainMenu(Frame):
         scrollbar_x = ttk.Scrollbar(frame_treeview, orient=HORIZONTAL, command=self.tree.xview)
         self.tree.configure(xscrollcommand=scrollbar_x.set)
 
-        # Empacotando os widgets
+        # Empacotando os widgets na ordem correta
         scrollbar_y.pack(side=RIGHT, fill=Y)
         scrollbar_x.pack(side=BOTTOM, fill=X)
         self.tree.pack(fill='both', expand=True)
@@ -371,7 +371,7 @@ class TabelaUrbana(Frame):
                 if nome_arquivo.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
                     caminho_completo = os.path.join("img-urbano", nome_arquivo)
                     img = Image.open(caminho_completo)
-                    nova_largura = 410
+                    nova_largura = 650 
                     nova_altura = int((nova_largura / img.width) * img.height)
                     img = img.resize((nova_largura, nova_altura), Image.LANCZOS)
                     photo = ImageTk.PhotoImage(img)
