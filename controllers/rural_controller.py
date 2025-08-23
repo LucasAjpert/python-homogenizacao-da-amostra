@@ -18,6 +18,3 @@ class RuralController:
         # e para adicionar na treeview de imóveis rurais.
         # self.model.add_imovel(dados)
 
-    def mostrar_tabelas_rurais(self):
-        print("Funcionalidade de tabelas rurais ainda não implementada.")
-        messagebox.showinfo("Não implementado", "As tabelas para imóveis rurais ainda não foram criadas.")
