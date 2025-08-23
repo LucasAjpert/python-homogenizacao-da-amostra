@@ -427,13 +427,14 @@ class CadastroRural(Frame):
 
         # Dicionário de campos de texto
         campos_info = {
-            "area_imovel": "Área do imóvel(m2):",
-            "valor_imovel_sem_benf": "Valor do imóvel sem benf.(R$):",
+            "area_imovel": "Área do Imóvel(m2):",
+            "valor_imovel_sem_benf": "Valor do Imóvel sem Benf.(R$):",
             "benfeitorias": "Benfeitorias:",
-            "valor_unitario": "Valor unitario (R$/m2):",
+            "valor_unitario": "Valor Unitario (R$/m2):",
             "fonte": "Fonte(1,0 ou 0,9):",
             "fator_na": "Fator(N.A):",
-            "nota_agronomica": "Nota Agronômica:"
+            "nota_agronomica": "Nota Agronômica:",
+            "unitario_homog": "Unitário Homog. (R$/m2):"
         }
         
         row_num = 1
