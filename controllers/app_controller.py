@@ -22,7 +22,7 @@ class AppController:
         if tipo == "urbano":
             self.show_frame("CadastroUrbano")
         elif tipo == "rural":
-            self.rural.abrir_janela_cadastro()
+            self.show_frame("CadastroRural")
 
     def mostrar_tabelas(self):
         tipo = self.view.get_tipo_avaliacao()
