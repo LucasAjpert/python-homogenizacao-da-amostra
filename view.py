@@ -24,9 +24,9 @@ class MainView:
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (MainMenu, TabelaUrbana, CadastroUrbano, AtualizacaoUrbana, CadastroRural):
+        for F in (MainMenu, TabelaUrbana, CadastroUrbano, AtualizacaoUrbana, CadastroRural, TabelaRural):
             page_name = F.__name__
-            frame = F(parent=container, controller=self.controller, view=self)
+            frame = F(container, controller=self.controller, view=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
             
@@ -112,11 +112,6 @@ class MainMenu(Frame):
         scrollbar_x.pack(side=BOTTOM, fill=X)
         self.tree.pack(fill='both', expand=True)
         
-                # Empacotando os widgets na ordem correta
-        scrollbar_y.pack(side=RIGHT, fill=Y)
-        scrollbar_x.pack(side=BOTTOM, fill=X)
-        self.tree.pack(fill='both', expand=True)
-
 
         # --- CÓDIGO DO VALOR UNITÁRIO MÉDIO ESTÁ AQUI ---
         # --- FRAME PARA O RESULTADO DO VALOR UNITÁRIO MÉDIO ---
@@ -296,6 +291,112 @@ class CadastroUrbano(Frame):
                 widget.set("Não")
             else:
                 widget.delete(0, END)
+
+# =============================================================================
+# --- NOVA TELA: TABELA RURAL (IMAGENS) ---
+# =============================================================================
+class TabelaRural(Frame):
+    def __init__(self, parent, controller, view):
+        super().__init__(parent, bg="lightblue")
+        self.controller = controller
+        self.view = view
+        self.imagens_carregadas = False
+
+    def on_show(self):
+        # Este método é chamado toda vez que a tela é exibida
+        if not self.imagens_carregadas:
+            self.carregar_conteudo()
+            self.imagens_carregadas = True
+
+    def carregar_conteudo(self):
+        Label(self, text="Tabelas de Referência (Rural)", bg="lightblue", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        frame_canvas = Frame(self, bg="lightblue")
+        frame_canvas.pack(fill=BOTH, expand=True, padx=5, pady=5)
+        
+        canvas = Canvas(frame_canvas, bg="lightblue", highlightthickness=0)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+        
+        scrollbar = Scrollbar(frame_canvas, orient=VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+        
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        scrollable_frame = Frame(canvas, bg="lightblue")
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="n")
+        
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        
+        scrollable_frame.imagens = [] 
+
+        try:
+            # Procura imagens na pasta img-rural
+            arquivos = sorted(os.listdir("img-rural"))
+            for nome_arquivo in arquivos:
+                if nome_arquivo.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                    caminho_completo = os.path.join("img-rural", nome_arquivo)
+                    img = Image.open(caminho_completo)
+                    
+                    # Ajusta a largura da imagem
+                    nova_largura = 650
+                    nova_altura = int((nova_largura / img.width) * img.height)
+                    img = img.resize((nova_largura, nova_altura), Image.LANCZOS)
+
+                    photo = ImageTk.PhotoImage(img)
+                    scrollable_frame.imagens.append(photo)
+                    
+                    Label(scrollable_frame, image=scrollable_frame.imagens[-1]).pack(pady=10, padx=10)
+        except Exception as e:
+            Label(scrollable_frame, text=f"Erro ao carregar imagens: {e}", fg="red").pack()
+        
+        Button(self, text="Voltar ao Menu Principal", command=lambda: self.controller.show_frame("MainMenu")).pack(pady=10)
+
+
+# =============================================================================
+# --- CORREÇÃO DO NameError: CLASSE AtualizacaoUrbana ADICIONADA ---
+# =============================================================================
+class AtualizacaoUrbana(Frame):
+    def __init__(self, parent, controller, view):
+        super().__init__(parent, bg="lightblue")
+        self.controller = controller
+        self.view = view
+        self.entradas = {}
+
+        Label(self, text="Atualizar Cadastro de Imóvel", bg="lightblue", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        # A estrutura do formulário é idêntica à do CadastroUrbano
+        # Você pode copiar o código de criação do formulário de CadastroUrbano para cá
+        # Por simplicidade, vou criar apenas alguns campos de exemplo
+        frame_form = Frame(self, bg="lightblue")
+        frame_form.pack(pady=10, padx=10)
+        Label(frame_form, text="Endereço:", bg="lightblue").grid(row=0, column=0)
+        self.entradas['endereco'] = Entry(frame_form)
+        self.entradas['endereco'].grid(row=0, column=1)
+
+        # BOTÕES DIFERENTES
+        frame_botoes = Frame(self, bg="lightblue")
+        frame_botoes.pack(pady=10)
+        
+        Button(frame_botoes, text="Atualizar", command=self._on_update).pack(side=LEFT, padx=5)
+        Button(frame_botoes, text="Cancelar", command=self._on_cancel).pack(side=LEFT, padx=5)
+
+    def popular_formulario(self, dados):
+        """Preenche os campos do formulário com os dados existentes."""
+        for chave, widget in self.entradas.items():
+            valor = dados.get(chave, "")
+            if isinstance(widget, StringVar):
+                widget.set(valor)
+            else:
+                widget.delete(0, END)
+                widget.insert(0, valor)
+
+    def _on_update(self):
+        dados_atualizados = {key: widget.get() for key, widget in self.entradas.items()}
+        self.controller.urbano.executar_atualizacao(dados_atualizados)
+        self.controller.show_frame("MainMenu")
+
+    def _on_cancel(self):
+        self.controller.show_frame("MainMenu")
 
 # =============================================================================
 # --- NOVA TELA: CADASTRO RURAL ---
