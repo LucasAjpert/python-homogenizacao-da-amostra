@@ -37,7 +37,7 @@ class AppController:
         if tipo == "urbano":
             self.show_frame("TabelaUrbana")
         elif tipo == "rural":
-            self.rural.mostrar_tabelas_rurais()
+            self.show_frame("TabelaRural")
 
     def iniciar_atualizacao(self):
         """Pega o item selecionado e inicia o processo de atualização."""

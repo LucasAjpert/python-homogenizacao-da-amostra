@@ -28,6 +28,3 @@ class RuralController:
         # No futuro, aqui também chamaremos a função para recalcular a média
         # self._atualizar_media()
 
-    def mostrar_tabelas_rurais(self):
-        print("Funcionalidade de tabelas rurais ainda não implementada.")
-        messagebox.showinfo("Não implementado", "As tabelas para imóveis rurais ainda não foram criadas.")
