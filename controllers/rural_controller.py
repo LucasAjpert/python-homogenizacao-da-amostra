@@ -11,12 +11,22 @@ class RuralController:
     def salvar_dados(self, dados):
         """Recebe os dados do formulário rural e os processa."""
         print("--- DADOS DO IMÓVEL RURAL RECEBIDOS ---")
-        for chave, valor in dados.items():
-            print(f"{chave}: {valor}")
         
-        # No futuro, aqui entrará a lógica para salvar no modelo
-        # e para adicionar na treeview de imóveis rurais.
-        # self.model.add_imovel(dados)
+        # Pega a treeview rural da tela principal
+        main_menu_frame = self.app_controller.view.get_frame("MainMenu")
+        tree = main_menu_frame.tree_rural
+
+        # Define a ordem correta das colunas
+        colunas_rurais = main_menu_frame.colunas_rural
+        
+        # Pega os valores do dicionário de dados na ordem correta
+        valores_para_treeview = tuple(dados.get(cid, "") for cid in colunas_rurais)
+
+        # Insere na treeview
+        tree.insert("", "end", values=valores_para_treeview)
+        
+        # No futuro, aqui também chamaremos a função para recalcular a média
+        # self._atualizar_media()
 
     def mostrar_tabelas_rurais(self):
         print("Funcionalidade de tabelas rurais ainda não implementada.")

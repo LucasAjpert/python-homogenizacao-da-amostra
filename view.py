@@ -24,9 +24,9 @@ class MainView:
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (MainMenu, TabelaUrbana, CadastroUrbano, AtualizacaoUrbana, CadastroRural):
+        for F in (MainMenu, TabelaUrbana, CadastroUrbano, AtualizacaoUrbana, CadastroRural, TabelaRural):
             page_name = F.__name__
-            frame = F(parent=container, controller=self.controller, view=self)
+            frame = F(container, controller=self.controller, view=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
             
@@ -56,14 +56,18 @@ class MainMenu(Frame):
         self.controller = controller
         self.view = view
 
-        # (Código dos botões e radio buttons permanece o mesmo)
+        # --- Frame para os Radio Buttons ---
         frame_opcoes = Frame(self, bg="lightblue")
         frame_opcoes.pack(pady=10, padx=20, fill='x', expand=True)
         Label(frame_opcoes, text="Informe o tipo de avaliação:", bg="lightblue").pack(anchor='center')
         frame_radios = Frame(frame_opcoes, bg="lightblue")
         frame_radios.pack(anchor='center')
-        Radiobutton(frame_radios, text="Urbano", variable=self.view.tipo_avaliacao, value="urbano", bg="lightblue").pack(side=LEFT)
-        Radiobutton(frame_radios, text="Imóveis Rurais", variable=self.view.tipo_avaliacao, value="rural", bg="lightblue").pack(side=LEFT)
+        
+        # O comando do radio button agora chama uma função do controller para trocar a tabela
+        Radiobutton(frame_radios, text="Urbano", variable=self.view.tipo_avaliacao, value="urbano", bg="lightblue", command=self.controller.switch_tree_view).pack(side=LEFT)
+        Radiobutton(frame_radios, text="Imóveis Rurais", variable=self.view.tipo_avaliacao, value="rural", bg="lightblue", command=self.controller.switch_tree_view).pack(side=LEFT)
+        
+        # --- Frame para os Botões Principais ---
         frame_botoes = Frame(self, bg="lightblue")
         frame_botoes.pack(pady=5, padx=20, fill='x', expand=True)
         estilo_botao = {"bg": "#007BFF", "fg": "white", "font": ("Arial", 10, "bold"), "relief": "raised", "borderwidth": 2, "width": 15}
@@ -73,76 +77,78 @@ class MainMenu(Frame):
         Button(frame_botoes, text="Delete", command=self.controller.deletar_dados, **estilo_botao).pack(pady=4)
         Button(frame_botoes, text="Sair", command=self.controller.sair, **estilo_botao).pack(pady=4)
         
-# --- ALTERAÇÕES NA TREEVIEW ---
-        frame_treeview = Frame(self, bg="lightblue")
-        frame_treeview.pack(pady=10, padx=10, fill='both', expand=True)
-        
-        # Lista de todas as colunas (id_interno, "Texto do Cabeçalho")
-        self.colunas_info = [
-            ("endereco", "Endereço"), ("area_construida", "Área"),
-            ("idade_imovel", "Idade"), ("valor_total", "Valor Total"),
-            ("valor_unitario", "Valor Unitário"), ("padrao_construtivo", "Padrão"),
-            ("valor_residual", "Residual"), ("conservacao_foc", "*Cons. Foc"),
-            ("indice_fiscal", "Indice Fiscal"), ("frentes_multiplas", "Frentes Múlt."),
-            ("idade_referencial", "Idade Ref."), ("estado_conservacao", "Est. Conservação"),
-            ("fator_oferta", "*Fator Oferta"), ("padao_const", "*Padrão Const."),
-            ("conservacao", "*Conservação"), ("localizacao", "*Localização"),
-            ("frentes_m", "*Frentes M"), ("unitario_homog", "*Unitário Homog."),
-            ("benfeitorias", "Benfeitorias")
-        ]
-        
-        colunas_ids = [c[0] for c in self.colunas_info]
+        # --- Container para as Treeviews ---
+        self.frame_treeview_container = Frame(self, bg="lightblue")
+        self.frame_treeview_container.pack(pady=10, padx=10, fill='both', expand=True)
+        self.frame_treeview_container.grid_rowconfigure(0, weight=1)
+        self.frame_treeview_container.grid_columnconfigure(0, weight=1)
 
-        self.tree = ttk.Treeview(frame_treeview, columns=colunas_ids, show='headings')
+        self._criar_treeview_urbana()
+        self._criar_treeview_rural()
 
-        for cid, cheading in self.colunas_info:
-            self.tree.heading(cid, text=cheading)
-            self.tree.column(cid, width=120, anchor='center') # Largura padrão para cada coluna
-        
-        # Scrollbar Vertical
-        scrollbar_y = ttk.Scrollbar(frame_treeview, orient=VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar_y.set)
-        
-        # Scrollbar Horizontal
-        scrollbar_x = ttk.Scrollbar(frame_treeview, orient=HORIZONTAL, command=self.tree.xview)
-        self.tree.configure(xscrollcommand=scrollbar_x.set)
-
-        # Empacotando os widgets na ordem correta
-        scrollbar_y.pack(side=RIGHT, fill=Y)
-        scrollbar_x.pack(side=BOTTOM, fill=X)
-        self.tree.pack(fill='both', expand=True)
-        
-                # Empacotando os widgets na ordem correta
-        scrollbar_y.pack(side=RIGHT, fill=Y)
-        scrollbar_x.pack(side=BOTTOM, fill=X)
-        self.tree.pack(fill='both', expand=True)
-
-
-        # --- CÓDIGO DO VALOR UNITÁRIO MÉDIO ESTÁ AQUI ---
-        # --- FRAME PARA O RESULTADO DO VALOR UNITÁRIO MÉDIO ---
+        # --- Frame para o Valor Unitário Médio ---
         frame_resultado = Frame(self, bg="lightblue")
         frame_resultado.pack(pady=5, padx=10, fill='x')
-
-        Label(
-            frame_resultado, 
-            text="Valor Unitario Médio:", 
-            bg="lightblue", 
-            font=("Arial", 10, "bold")
-        ).pack(side=LEFT, padx=5)
-
-        # Variável para controlar o texto do Entry
+        Label(frame_resultado, text="Valor Unitario Médio:", bg="lightblue", font=("Arial", 10, "bold")).pack(side=LEFT, padx=5)
         self.valor_unitario_medio_var = StringVar()
+        Entry(frame_resultado, textvariable=self.valor_unitario_medio_var, width=30, state='readonly', font=("Arial", 10, "bold"), readonlybackground='white', fg='black').pack(side=LEFT, padx=5)
 
-        # Entry para exibir o valor (não editável pelo usuário)
-        Entry(
-            frame_resultado, 
-            textvariable=self.valor_unitario_medio_var, 
-            width=30, # Largura em caracteres (aproximadamente 250px)
-            state='readonly', 
-            font=("Arial", 10, "bold"),
-            readonlybackground='white',
-            fg='black'
-        ).pack(side=LEFT, padx=5) # Opções fill e expand removidas
+        # Mostra a treeview urbana por padrão
+        self.show_tree('urbano')
+
+    def _criar_treeview_urbana(self):
+        self.frame_urbano = Frame(self.frame_treeview_container)
+        colunas_info = [
+            ("endereco", "Endereço"), ("area_construida", "Área"), ("idade_imovel", "Idade"), 
+            ("valor_total", "Valor Total"), ("valor_unitario", "Valor Unitário"), ("padrao_construtivo", "Padrão"),
+            ("valor_residual", "Residual"), ("conservacao_foc", "*Cons. Foc"), ("indice_fiscal", "Indice Fiscal"),
+            ("frentes_multiplas", "Frentes Múlt."), ("idade_referencial", "Idade Ref."), ("estado_conservacao", "Est. Conservação"),
+            ("fator_oferta", "*Fator Oferta"), ("padao_const", "*Padrão Const."), ("conservacao", "*Conservação"),
+            ("localizacao", "*Localização"), ("frentes_m", "*Frentes M"), ("unitario_homog", "*Unitário Homog."),
+            ("benfeitorias", "Benfeitorias")
+        ]
+        self.colunas_urbano = [c[0] for c in colunas_info]
+        self.tree_urbano = ttk.Treeview(self.frame_urbano, columns=self.colunas_urbano, show='headings')
+        for cid, cheading in colunas_info:
+            self.tree_urbano.heading(cid, text=cheading, anchor='center')
+            self.tree_urbano.column(cid, width=120, anchor='center')
+        
+        # Scrollbars
+        scrollbar_y = ttk.Scrollbar(self.frame_urbano, orient=VERTICAL, command=self.tree_urbano.yview)
+        scrollbar_x = ttk.Scrollbar(self.frame_urbano, orient=HORIZONTAL, command=self.tree_urbano.xview)
+        self.tree_urbano.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        self.tree_urbano.pack(fill='both', expand=True)
+
+    def _criar_treeview_rural(self):
+        self.frame_rural = Frame(self.frame_treeview_container)
+        colunas_info = [
+            ("area_imovel", "Área do Imóvel(m2)"), ("valor_imovel_sem_benf", "Valor Imóvel sem Benf.(R$)"),
+            ("valor_unitario", "Valor Unitário"), ("fonte", "Fonte"),
+            ("nota_agronomica", "Nota Agronômica"), ("unitario_homog", "Unitário Homog.")
+        ]
+        self.colunas_rural = [c[0] for c in colunas_info]
+        self.tree_rural = ttk.Treeview(self.frame_rural, columns=self.colunas_rural, show='headings')
+        for cid, cheading in colunas_info:
+            self.tree_rural.heading(cid, text=cheading, anchor='center')
+            self.tree_rural.column(cid, width=150, anchor='center')
+        
+        # Scrollbars
+        scrollbar_y = ttk.Scrollbar(self.frame_rural, orient=VERTICAL, command=self.tree_rural.yview)
+        scrollbar_x = ttk.Scrollbar(self.frame_rural, orient=HORIZONTAL, command=self.tree_rural.xview)
+        self.tree_rural.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        self.tree_rural.pack(fill='both', expand=True)
+
+    def show_tree(self, mode):
+        if mode == 'urbano':
+            self.frame_urbano.grid(row=0, column=0, sticky="nsew")
+            self.frame_rural.grid_remove()
+        elif mode == 'rural':
+            self.frame_rural.grid(row=0, column=0, sticky="nsew")
+            self.frame_urbano.grid_remove()
 
 # =============================================================================
 # --- TELA: TABELA URBANA (IMAGENS) ---

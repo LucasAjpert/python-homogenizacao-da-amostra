@@ -1,0 +1,96 @@
+# =============================================================================
+# --- TELA: MENU PRINCIPAL ---
+# =============================================================================
+class MainMenu(Frame):
+    def __init__(self, parent, controller, view):
+        super().__init__(parent, bg="lightblue")
+        self.controller = controller
+        self.view = view
+
+        # (Código dos botões e radio buttons permanece o mesmo)
+        frame_opcoes = Frame(self, bg="lightblue")
+        frame_opcoes.pack(pady=10, padx=20, fill='x', expand=True)
+        Label(frame_opcoes, text="Informe o tipo de avaliação:", bg="lightblue").pack(anchor='center')
+        frame_radios = Frame(frame_opcoes, bg="lightblue")
+        frame_radios.pack(anchor='center')
+        Radiobutton(frame_radios, text="Urbano", variable=self.view.tipo_avaliacao, value="urbano", bg="lightblue").pack(side=LEFT)
+        Radiobutton(frame_radios, text="Imóveis Rurais", variable=self.view.tipo_avaliacao, value="rural", bg="lightblue").pack(side=LEFT)
+        frame_botoes = Frame(self, bg="lightblue")
+        frame_botoes.pack(pady=5, padx=20, fill='x', expand=True)
+        estilo_botao = {"bg": "#007BFF", "fg": "white", "font": ("Arial", 10, "bold"), "relief": "raised", "borderwidth": 2, "width": 15}
+        Button(frame_botoes, text="Novo Calculo", command=self.controller.iniciar_novo_calculo, **estilo_botao).pack(pady=4)
+        Button(frame_botoes, text="Tabelas", command=self.controller.mostrar_tabelas, **estilo_botao).pack(pady=4)
+        Button(frame_botoes, text="Atualizar", command=self.controller.iniciar_atualizacao, **estilo_botao).pack(pady=4)
+        Button(frame_botoes, text="Delete", command=self.controller.deletar_dados, **estilo_botao).pack(pady=4)
+        Button(frame_botoes, text="Sair", command=self.controller.sair, **estilo_botao).pack(pady=4)
+        
+# --- ALTERAÇÕES NA TREEVIEW ---
+        frame_treeview = Frame(self, bg="lightblue")
+        frame_treeview.pack(pady=10, padx=10, fill='both', expand=True)
+        
+        # Lista de todas as colunas (id_interno, "Texto do Cabeçalho")
+        self.colunas_info = [
+            ("endereco", "Endereço"), ("area_construida", "Área"),
+            ("idade_imovel", "Idade"), ("valor_total", "Valor Total"),
+            ("valor_unitario", "Valor Unitário"), ("padrao_construtivo", "Padrão"),
+            ("valor_residual", "Residual"), ("conservacao_foc", "*Cons. Foc"),
+            ("indice_fiscal", "Indice Fiscal"), ("frentes_multiplas", "Frentes Múlt."),
+            ("idade_referencial", "Idade Ref."), ("estado_conservacao", "Est. Conservação"),
+            ("fator_oferta", "*Fator Oferta"), ("padao_const", "*Padrão Const."),
+            ("conservacao", "*Conservação"), ("localizacao", "*Localização"),
+            ("frentes_m", "*Frentes M"), ("unitario_homog", "*Unitário Homog."),
+            ("benfeitorias", "Benfeitorias")
+        ]
+        
+        colunas_ids = [c[0] for c in self.colunas_info]
+
+        self.tree = ttk.Treeview(frame_treeview, columns=colunas_ids, show='headings')
+
+        for cid, cheading in self.colunas_info:
+            self.tree.heading(cid, text=cheading)
+            self.tree.column(cid, width=120, anchor='center') # Largura padrão para cada coluna
+        
+        # Scrollbar Vertical
+        scrollbar_y = ttk.Scrollbar(frame_treeview, orient=VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar_y.set)
+        
+        # Scrollbar Horizontal
+        scrollbar_x = ttk.Scrollbar(frame_treeview, orient=HORIZONTAL, command=self.tree.xview)
+        self.tree.configure(xscrollcommand=scrollbar_x.set)
+
+        # Empacotando os widgets na ordem correta
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        self.tree.pack(fill='both', expand=True)
+        
+                # Empacotando os widgets na ordem correta
+        scrollbar_y.pack(side=RIGHT, fill=Y)
+        scrollbar_x.pack(side=BOTTOM, fill=X)
+        self.tree.pack(fill='both', expand=True)
+
+
+        # --- CÓDIGO DO VALOR UNITÁRIO MÉDIO ESTÁ AQUI ---
+        # --- FRAME PARA O RESULTADO DO VALOR UNITÁRIO MÉDIO ---
+        frame_resultado = Frame(self, bg="lightblue")
+        frame_resultado.pack(pady=5, padx=10, fill='x')
+
+        Label(
+            frame_resultado, 
+            text="Valor Unitario Médio:", 
+            bg="lightblue", 
+            font=("Arial", 10, "bold")
+        ).pack(side=LEFT, padx=5)
+
+        # Variável para controlar o texto do Entry
+        self.valor_unitario_medio_var = StringVar()
+
+        # Entry para exibir o valor (não editável pelo usuário)
+        Entry(
+            frame_resultado, 
+            textvariable=self.valor_unitario_medio_var, 
+            width=30, # Largura em caracteres (aproximadamente 250px)
+            state='readonly', 
+            font=("Arial", 10, "bold"),
+            readonlybackground='white',
+            fg='black'
+        ).pack(side=LEFT, padx=5) # Opções fill e expand removidas

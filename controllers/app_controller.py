@@ -17,6 +17,14 @@ class AppController:
     def show_frame(self, page_name):
         self.view.show_frame(page_name)
 
+    def switch_tree_view(self):
+        """Troca a treeview visível na tela principal."""
+        mode = self.view.get_tipo_avaliacao()
+        main_menu = self.view.get_frame("MainMenu")
+        main_menu.show_tree(mode)
+        # Limpa o valor médio ao trocar
+        main_menu.valor_unitario_medio_var.set("")
+
     def iniciar_novo_calculo(self):
         tipo = self.view.get_tipo_avaliacao()
         if tipo == "urbano":
