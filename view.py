@@ -63,7 +63,6 @@ class MainMenu(Frame):
         frame_radios = Frame(frame_opcoes, bg="lightblue")
         frame_radios.pack(anchor='center')
         
-        # O comando do radio button agora chama uma função do controller para trocar a tabela
         Radiobutton(frame_radios, text="Urbano", variable=self.view.tipo_avaliacao, value="urbano", bg="lightblue", command=self.controller.switch_tree_view).pack(side=LEFT)
         Radiobutton(frame_radios, text="Imóveis Rurais", variable=self.view.tipo_avaliacao, value="rural", bg="lightblue", command=self.controller.switch_tree_view).pack(side=LEFT)
         
@@ -86,30 +85,7 @@ class MainMenu(Frame):
         self._criar_treeview_urbana()
         self._criar_treeview_rural()
 
-<<<<<<< HEAD
         # --- Frame para o Valor Unitário Médio ---
-=======
-        for cid, cheading in self.colunas_info:
-            self.tree.heading(cid, text=cheading)
-            self.tree.column(cid, width=120, anchor='center') # Largura padrão para cada coluna
-        
-        # Scrollbar Vertical
-        scrollbar_y = ttk.Scrollbar(frame_treeview, orient=VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar_y.set)
-        
-        # Scrollbar Horizontal
-        scrollbar_x = ttk.Scrollbar(frame_treeview, orient=HORIZONTAL, command=self.tree.xview)
-        self.tree.configure(xscrollcommand=scrollbar_x.set)
-
-        # Empacotando os widgets na ordem correta
-        scrollbar_y.pack(side=RIGHT, fill=Y)
-        scrollbar_x.pack(side=BOTTOM, fill=X)
-        self.tree.pack(fill='both', expand=True)
-        
-
-        # --- CÓDIGO DO VALOR UNITÁRIO MÉDIO ESTÁ AQUI ---
-        # --- FRAME PARA O RESULTADO DO VALOR UNITÁRIO MÉDIO ---
->>>>>>> 418caafe8c516dfa7548ff673b672bb638a7f75c
         frame_resultado = Frame(self, bg="lightblue")
         frame_resultado.pack(pady=5, padx=10, fill='x')
         Label(frame_resultado, text="Valor Unitario Médio:", bg="lightblue", font=("Arial", 10, "bold")).pack(side=LEFT, padx=5)
@@ -121,7 +97,7 @@ class MainMenu(Frame):
 
     def _criar_treeview_urbana(self):
         self.frame_urbano = Frame(self.frame_treeview_container)
-        colunas_info = [
+        self.colunas_info_urbano = [
             ("endereco", "Endereço"), ("area_construida", "Área"), ("idade_imovel", "Idade"), 
             ("valor_total", "Valor Total"), ("valor_unitario", "Valor Unitário"), ("padrao_construtivo", "Padrão"),
             ("valor_residual", "Residual"), ("conservacao_foc", "*Cons. Foc"), ("indice_fiscal", "Indice Fiscal"),
@@ -130,13 +106,12 @@ class MainMenu(Frame):
             ("localizacao", "*Localização"), ("frentes_m", "*Frentes M"), ("unitario_homog", "*Unitário Homog."),
             ("benfeitorias", "Benfeitorias")
         ]
-        self.colunas_urbano = [c[0] for c in colunas_info]
-        self.tree_urbano = ttk.Treeview(self.frame_urbano, columns=self.colunas_urbano, show='headings')
-        for cid, cheading in colunas_info:
+        colunas_ids = [c[0] for c in self.colunas_info_urbano]
+        self.tree_urbano = ttk.Treeview(self.frame_urbano, columns=colunas_ids, show='headings')
+        for cid, cheading in self.colunas_info_urbano:
             self.tree_urbano.heading(cid, text=cheading, anchor='center')
             self.tree_urbano.column(cid, width=120, anchor='center')
         
-        # Scrollbars
         scrollbar_y = ttk.Scrollbar(self.frame_urbano, orient=VERTICAL, command=self.tree_urbano.yview)
         scrollbar_x = ttk.Scrollbar(self.frame_urbano, orient=HORIZONTAL, command=self.tree_urbano.xview)
         self.tree_urbano.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
@@ -146,18 +121,17 @@ class MainMenu(Frame):
 
     def _criar_treeview_rural(self):
         self.frame_rural = Frame(self.frame_treeview_container)
-        colunas_info = [
+        self.colunas_info_rural = [
             ("area_imovel", "Área do Imóvel(m2)"), ("valor_imovel_sem_benf", "Valor Imóvel sem Benf.(R$)"),
             ("valor_unitario", "Valor Unitário"), ("fonte", "Fonte"),
             ("nota_agronomica", "Nota Agronômica"), ("unitario_homog", "Unitário Homog.")
         ]
-        self.colunas_rural = [c[0] for c in colunas_info]
-        self.tree_rural = ttk.Treeview(self.frame_rural, columns=self.colunas_rural, show='headings')
-        for cid, cheading in colunas_info:
+        colunas_ids = [c[0] for c in self.colunas_info_rural]
+        self.tree_rural = ttk.Treeview(self.frame_rural, columns=colunas_ids, show='headings')
+        for cid, cheading in self.colunas_info_rural:
             self.tree_rural.heading(cid, text=cheading, anchor='center')
             self.tree_rural.column(cid, width=150, anchor='center')
         
-        # Scrollbars
         scrollbar_y = ttk.Scrollbar(self.frame_rural, orient=VERTICAL, command=self.tree_rural.yview)
         scrollbar_x = ttk.Scrollbar(self.frame_rural, orient=HORIZONTAL, command=self.tree_rural.xview)
         self.tree_rural.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
@@ -172,7 +146,7 @@ class MainMenu(Frame):
         elif mode == 'rural':
             self.frame_rural.grid(row=0, column=0, sticky="nsew")
             self.frame_urbano.grid_remove()
-
+            
 # =============================================================================
 # --- TELA: TABELA URBANA (IMAGENS) ---
 # =============================================================================
