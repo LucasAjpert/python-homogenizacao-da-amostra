@@ -29,3 +29,26 @@ CREATE TABLE IF NOT EXISTS imoveis_urbanos (
     descricao_benfeitorias TEXT,
     tipo_cadastro BOOL
 );
+
+-- Crie a tabela para os imóveis rurais
+CREATE TABLE IF NOT EXISTS imoveis_rurais (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo_cadastro BOOL,
+	endereco VARCHAR(255),
+    area_imovel FLOAT(10),
+    valor_imovel_sem_benf FLOAT(15),
+    benfeitorias FLOAT(15),
+    valor_unitario FLOAT(10),
+    fonte FLOAT(3),
+    fator_na FLOAT(10),
+    nota_agronomica FLOAT(10),
+    unitario_homog FLOAT(15),
+    classe_1 INT(3),
+    classe_2 INT(3),
+    classe_3 INT(3),
+    classe_4 INT(3),
+    classe_5 INT(3),
+    classe_6 INT(3),
+    classe_7 INT(3),
+    classe_8 INT(3)
+);
