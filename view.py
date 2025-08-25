@@ -56,17 +56,28 @@ class MainMenu(Frame):
         self.controller = controller
         self.view = view
 
-        # --- Frame para os Radio Buttons ---
+        # --- NOVO: Carregar imagens dos checkboxes ---
+        # Garanta que os arquivos unchecked.png e checked.png estão na pasta do projeto
+        try:
+            self.unchecked_image = ImageTk.PhotoImage(Image.open("unchecked.png"))
+            self.checked_image = ImageTk.PhotoImage(Image.open("checked.png"))
+        except FileNotFoundError:
+            print("AVISO: Imagens 'checked.png' e 'unchecked.png' não encontradas.")
+            # Use placeholders de texto se as imagens não existirem
+            self.unchecked_image = None
+            self.checked_image = None
+
+
+        # --- Frame para os Radio Buttons (sem alteração) ---
         frame_opcoes = Frame(self, bg="lightblue")
         frame_opcoes.pack(pady=10, padx=20, fill='x', expand=True)
         Label(frame_opcoes, text="Informe o tipo de avaliação:", bg="lightblue").pack(anchor='center')
         frame_radios = Frame(frame_opcoes, bg="lightblue")
         frame_radios.pack(anchor='center')
-        
         Radiobutton(frame_radios, text="Urbano", variable=self.view.tipo_avaliacao, value="urbano", bg="lightblue", command=self.controller.switch_tree_view).pack(side=LEFT)
         Radiobutton(frame_radios, text="Imóveis Rurais", variable=self.view.tipo_avaliacao, value="rural", bg="lightblue", command=self.controller.switch_tree_view).pack(side=LEFT)
         
-        # --- Frame para os Botões Principais ---
+        # --- Frame para os Botões Principais (sem alteração) ---
         frame_botoes = Frame(self, bg="lightblue")
         frame_botoes.pack(pady=5, padx=20, fill='x', expand=True)
         estilo_botao = {"bg": "#007BFF", "fg": "white", "font": ("Arial", 10, "bold"), "relief": "raised", "borderwidth": 2, "width": 15}
@@ -76,7 +87,7 @@ class MainMenu(Frame):
         Button(frame_botoes, text="Delete", command=self.controller.deletar_dados, **estilo_botao).pack(pady=4)
         Button(frame_botoes, text="Sair", command=self.controller.sair, **estilo_botao).pack(pady=4)
         
-        # --- Container para as Treeviews ---
+        # --- Container para as Treeviews (sem alteração) ---
         self.frame_treeview_container = Frame(self, bg="lightblue")
         self.frame_treeview_container.pack(pady=10, padx=10, fill='both', expand=True)
         self.frame_treeview_container.grid_rowconfigure(0, weight=1)
@@ -85,22 +96,24 @@ class MainMenu(Frame):
         self._criar_treeview_urbana()
         self._criar_treeview_rural()
 
-        # --- Frame para o Valor Unitário Médio ---
+        # --- Frame para o Valor Unitário Médio (sem alteração) ---
         frame_resultado = Frame(self, bg="lightblue")
         frame_resultado.pack(pady=5, padx=10, fill='x')
         Label(frame_resultado, text="Valor Unitario Médio:", bg="lightblue", font=("Arial", 10, "bold")).pack(side=LEFT, padx=5)
         self.valor_unitario_medio_var = StringVar()
         Entry(frame_resultado, textvariable=self.valor_unitario_medio_var, width=30, state='readonly', font=("Arial", 10, "bold"), readonlybackground='white', fg='black').pack(side=LEFT, padx=5)
 
-        # Mostra a treeview urbana por padrão
         self.show_tree('urbano')
 
     def _criar_treeview_urbana(self):
         self.frame_urbano = Frame(self.frame_treeview_container)
+        
+        # --- ALTERADO: Adicionada coluna 'select' ---
         self.colunas_info_urbano = [
+            ("select", "✓"), # Nova coluna para o checkbox
             ("endereco", "Endereço"), ("area_construida", "Área"), ("idade_imovel", "Idade"), 
             ("valor_total", "Valor Total"), ("valor_unitario", "Valor Unitário"), ("padrao_construtivo", "Padrão"),
-            ("valor_residual", "Residual"), ("conservacao_foc", "*Cons. Foc"), ("indice_fiscal", "Indice Fiscal"),
+            ("valor_residual", "Residual"), ("conservacao_foc", "Cons. Foc"), ("indice_fiscal", "Indice Fiscal"),
             ("frentes_multiplas", "Frentes Múlt."), ("idade_referencial", "Idade Ref."), ("estado_conservacao", "Est. Conservação"),
             ("fator_oferta", "*Fator Oferta"), ("padao_const", "*Padrão Const."), ("conservacao", "*Conservação"),
             ("localizacao", "*Localização"), ("frentes_m", "*Frentes M"), ("unitario_homog", "*Unitário Homog."),
@@ -108,9 +121,18 @@ class MainMenu(Frame):
         ]
         colunas_ids = [c[0] for c in self.colunas_info_urbano]
         self.tree_urbano = ttk.Treeview(self.frame_urbano, columns=colunas_ids, show='headings')
+        self.tree_urbano.tag_configure('avaliando_row', background='#F9FAFB', foreground='black')
+
         for cid, cheading in self.colunas_info_urbano:
             self.tree_urbano.heading(cid, text=cheading, anchor='center')
-            self.tree_urbano.column(cid, width=120, anchor='center')
+            # --- ALTERADO: Configuração da coluna de seleção ---
+            if cid == "select":
+                self.tree_urbano.column(cid, width=40, stretch=False, anchor='center')
+            else:
+                self.tree_urbano.column(cid, width=120, anchor='center')
+        
+        # --- NOVO: Vincular o clique do mouse à função de toggle ---
+        self.tree_urbano.bind("<Button-1>", self._toggle_check)
         
         scrollbar_y = ttk.Scrollbar(self.frame_urbano, orient=VERTICAL, command=self.tree_urbano.yview)
         scrollbar_x = ttk.Scrollbar(self.frame_urbano, orient=HORIZONTAL, command=self.tree_urbano.xview)
@@ -119,7 +141,70 @@ class MainMenu(Frame):
         scrollbar_x.pack(side=BOTTOM, fill=X)
         self.tree_urbano.pack(fill='both', expand=True)
 
+    # --- NOVO: Função para alternar o estado do checkbox ---
+    def _toggle_check(self, event):
+        item_id = self.tree_urbano.identify_row(event.y)
+        column_id = self.tree_urbano.identify_column(event.x)
+
+        # Verifica se o clique foi na primeira coluna ('select')
+        if not item_id or column_id != "#1":
+            return
+
+        # Impede a seleção do imóvel 'Avaliando'
+        if 'avaliando_row' in self.tree_urbano.item(item_id, 'tags'):
+            return
+
+        # Alterna a tag 'checked'
+        tags = list(self.tree_urbano.item(item_id, 'tags'))
+        if 'checked' in tags:
+            tags.remove('checked')
+        else:
+            tags.append('checked')
+        
+        self.tree_urbano.item(item_id, tags=tags)
+        
+        # Atualiza a imagem com base na tag
+        if self.unchecked_image and self.checked_image:
+            image = self.checked_image if 'checked' in tags else self.unchecked_image
+            self.tree_urbano.set(item_id, "select", "") # Limpa o texto para mostrar só a imagem
+            # O código para imagem é mais complexo, vamos focar no texto por simplicidade
+            # Por enquanto, usaremos "X" e ""
+        
+        text = "X" if 'checked' in tags else ""
+        self.tree_urbano.set(item_id, "select", text)
+        
+        # Recalcula a média
+        self._update_average()
+
+    # --- NOVO: Função para calcular e exibir a média ---
+    def _update_average(self):
+        total = 0.0
+        count = 0
+        
+        # Pega o índice da coluna 'unitario_homog'
+        try:
+            colunas_ids = [c[0] for c in self.colunas_info_urbano]
+            idx_homog = colunas_ids.index('unitario_homog') -1 # -1 porque os values não incluem a coluna #0
+        except ValueError:
+            return # Coluna não encontrada
+
+        for item_id in self.tree_urbano.get_children():
+            if 'checked' in self.tree_urbano.item(item_id, 'tags'):
+                try:
+                    valor_str = self.tree_urbano.item(item_id, 'values')[idx_homog]
+                    total += float(valor_str)
+                    count += 1
+                except (ValueError, IndexError):
+                    continue # Ignora se o valor não for um número válido
+
+        if count > 0:
+            media = total / count
+            self.valor_unitario_medio_var.set(f"R$ {media:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        else:
+            self.valor_unitario_medio_var.set("") # Limpa o campo se nada estiver selecionado
+
     def _criar_treeview_rural(self):
+        # ... (código da treeview rural, sem alteração) ...
         self.frame_rural = Frame(self.frame_treeview_container)
         self.colunas_info_rural = [
             ("area_imovel", "Área do Imóvel(m2)"), ("valor_imovel_sem_benf", "Valor Imóvel sem Benf.(R$)"),
@@ -140,6 +225,7 @@ class MainMenu(Frame):
         self.tree_rural.pack(fill='both', expand=True)
 
     def show_tree(self, mode):
+        # ... (código do show_tree, sem alteração) ...
         if mode == 'urbano':
             self.frame_urbano.grid(row=0, column=0, sticky="nsew")
             self.frame_rural.grid_remove()
@@ -234,7 +320,7 @@ class CadastroUrbano(Frame):
             "endereco": "Endereço:", "area_construida": "Área Construida:",
             "idade_imovel": "Idade do Imóvel:", "valor_total": "Valor Total:",
             "valor_unitario": "Valor Unitário:", "padrao_construtivo": "Padrão Construtivo:",
-            "valor_residual": "Valor Residual (ex: 20):", "conservacao_foc": "*Conservação Foc:",
+            "valor_residual": "Valor Residual (ex: 20):", "conservacao_foc": "Conservação Foc:",
             "indice_fiscal": "Indice Fiscal:"
         }
         
@@ -372,9 +458,6 @@ class AtualizacaoUrbana(Frame):
 
         Label(self, text="Atualizar Cadastro de Imóvel", bg="lightblue", font=("Arial", 14, "bold")).pack(pady=10)
         
-        # A estrutura do formulário é idêntica à do CadastroUrbano
-        # Você pode copiar o código de criação do formulário de CadastroUrbano para cá
-        # Por simplicidade, vou criar apenas alguns campos de exemplo
         frame_form = Frame(self, bg="lightblue")
         frame_form.pack(pady=10, padx=10)
         Label(frame_form, text="Endereço:", bg="lightblue").grid(row=0, column=0)
@@ -435,6 +518,7 @@ class CadastroRural(Frame):
 
         # Dicionário de campos de texto
         campos_info = {
+            "endereco": "Endereço:",
             "area_imovel": "Área do Imóvel(m2):",
             "valor_imovel_sem_benf": "Valor do Imóvel sem Benf.(R$):",
             "benfeitorias": "Benfeitorias:",
